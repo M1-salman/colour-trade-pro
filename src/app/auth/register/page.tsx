@@ -17,7 +17,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { CardWrapper } from "@/components/Auth/CardWrapper";
 import { useTransition, useState } from "react";
-// import { register } from "@/actions/register";
+import { register } from "@/actions/register";
 import { FormError } from "@/components/FormError";
 import { FormSuccess } from "@/components/FormSuccess";
 
@@ -38,16 +38,16 @@ const RegisterForm = () => {
 
   const onSubmit = (values: z.infer<typeof RegisterSchema>) => {
     startTransition(() => {
-      //   register(values).then((data) => {
-      //     setError(data.error);
-      //     setSuccess(data.success);
-      //   });
+      register(values).then((data) => {
+        setError(data.error);
+        setSuccess(data.success);
+      });
       console.log(values);
     });
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center min-h-screen pt-4">
       <CardWrapper
         headerTitle="Register"
         showSocial
