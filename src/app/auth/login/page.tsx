@@ -17,7 +17,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { CardWrapper } from "@/components/Auth/CardWrapper";
 import { useTransition, useState } from "react";
-// import { login } from "@/actions/login";
+import { login } from "@/actions/login";
 
 import { FormError } from "@/components/FormError";
 import { FormSuccess } from "@/components/FormSuccess";
@@ -38,10 +38,10 @@ const LoginForm = () => {
 
   const onSubmit = (values: z.infer<typeof LoginSchema>) => {
     startTransition(() => {
-      // login(values).then((data) => {
-      //   setError(data?.error);
-      //   setSuccess(data?.success);
-      // });
+      login(values).then((data) => {
+        setError(data?.error);
+        // setSuccess(data?.success);
+      });
     });
   };
 
