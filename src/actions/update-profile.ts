@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { getUserByEmail } from "@/data/user";
+import { revalidatePath } from "next/cache";
 
 export const updateUserImage = async (email: string, imageUrl: string) => {
   try {
@@ -12,12 +13,19 @@ export const updateUserImage = async (email: string, imageUrl: string) => {
     }
 
     // Update user image in database
-    await db.user.update({
+    const updatedUser = await db.user.update({
       where: { email: email },
       data: { image: imageUrl },
     });
 
-    return { success: "Profile image updated successfully" };
+    // Revalidate any paths that might show user data
+    revalidatePath('/profile');
+    revalidatePath('/dashboard');
+
+    return { 
+      success: "Profile image updated successfully",
+      user: updatedUser // Return updated user data
+    };
   } catch (error) {
     console.error("Error updating user image:", error);
     return { error: "Failed to update profile image" };

@@ -34,6 +34,24 @@ export const {
       },
     }),
   ],
+  callbacks: {
+    async jwt({ token, session, trigger }) {
+      if (trigger === "update" && session?.image) {
+        token.picture = session?.image;
+      }
+
+      return token;
+    },
+    async session({ session, token }) {
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          image: token.picture,
+        },
+      };
+    },
+  },
   pages: {
     signIn: "/auth/login",
   },

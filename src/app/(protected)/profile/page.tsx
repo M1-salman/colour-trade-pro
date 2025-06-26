@@ -15,7 +15,8 @@ const Profile = () => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const session = useCurrentUser();
+  // 🔥 Get both user and update function from the hook
+  const { user: session, update: updateSession } = useCurrentUser();
 
   const handleImageClick = () => {
     fileInputRef.current?.click();
@@ -65,12 +66,18 @@ const Profile = () => {
 
       const data = await response.json();
       const imageUrl = data.secure_url;
+
       // Update user image in database
       const result = await updateUserImage(session.email, imageUrl);
 
       if (result.error) {
         toast.error(result.error);
       } else {
+        // 🔥 Update the session to reflect the new image
+        await updateSession({
+          image: result.user?.image,
+        });
+
         toast.success("Profile image updated successfully!");
       }
     } catch (error) {
