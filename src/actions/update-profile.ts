@@ -20,7 +20,6 @@ export const updateUserImage = async (email: string, imageUrl: string) => {
 
     // Revalidate any paths that might show user data
     revalidatePath('/profile');
-    revalidatePath('/dashboard');
 
     return { 
       success: "Profile image updated successfully",

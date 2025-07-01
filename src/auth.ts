@@ -39,7 +39,6 @@ export const {
       if (trigger === "update" && session?.image) {
         token.picture = session?.image;
       }
-
       return token;
     },
     async session({ session, token }) {
@@ -48,6 +47,7 @@ export const {
         user: {
           ...session.user,
           image: token.picture,
+          id: token.sub,
         },
       };
     },
