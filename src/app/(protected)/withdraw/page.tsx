@@ -2,7 +2,11 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { createDeposit, getWalletAndDeposits } from "@/actions/deposit";
+import { 
+  createWithdrawal, 
+  getWalletAndWithdrawals, 
+  getUserBankAccount 
+} from "@/actions/withdraw";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,37 +22,52 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { WalletDepositSchema } from "@/schemas/user";
+import { WithdrawalSchema } from "@/schemas/user";
 import { useRouter } from "next/navigation";
 
-interface Transaction {
+interface WithdrawalTransaction {
   id: string;
   amount: number;
-  status: "pending" | "completed" | "failed";
+  status: "pending" | "processing" | "completed" | "rejected" | "cancelled";
   createdAt: string;
+  bankName: string;
+  accountNumber: string;
 }
+
+interface BankAccount {
+  id: string;
+  bankName: string;
+  accountNumber: string;
+  accountHolder: string;
+  isActive: boolean;
+}
+
 interface ApiResponse {
   error?: string;
   success?: string;
   balance?: number;
-  transactions?: Transaction[];
+  withdrawals?: WithdrawalTransaction[];
+  bankAccount?: BankAccount;
 }
 
-const Wallet = () => {
+const Withdraw = () => {
   const { user } = useCurrentUser();
   const [balance, setBalance] = useState<number>(0);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [withdrawals, setWithdrawals] = useState<WithdrawalTransaction[]>([]);
+  const [bankAccount, setBankAccount] = useState<BankAccount | null>(null);
   const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const router = useRouter();
 
-  const form = useForm<z.infer<typeof WalletDepositSchema>>({
-    resolver: zodResolver(WalletDepositSchema),
-    defaultValues: { amount: 0 },
+  const form = useForm<z.infer<typeof WithdrawalSchema>>({
+    resolver: zodResolver(WithdrawalSchema),
+    defaultValues: { 
+      amount: 0,
+    },
   });
 
-  const fetchWallet = async () => {
+  const fetchWalletData = async () => {
     if (!user?.id) {
       toast.error("User not authenticated");
       setIsLoading(false);
@@ -57,58 +76,76 @@ const Wallet = () => {
 
     try {
       setIsLoading(true);
-      const res = await getWalletAndDeposits(user.id);
+      const [walletRes, bankRes] = await Promise.all([
+        getWalletAndWithdrawals(user.id),
+        getUserBankAccount(user.id),
+      ]);
 
-      if (res && typeof res === "object") {
-        const response = res as ApiResponse;
+      if (walletRes && typeof walletRes === "object") {
+        const response = walletRes as ApiResponse;
         if (response.error) {
           toast.error(response.error);
         } else {
           setBalance(response.balance ?? 0);
-          setTransactions(response.transactions ?? []);
+          setWithdrawals(response.withdrawals ?? []);
         }
-      } else {
-        toast.error("Failed to fetch wallet data");
+      }
+
+      if (bankRes && typeof bankRes === "object") {
+        const response = bankRes as ApiResponse;
+        if (response.error) {
+          toast.error(response.error);
+        } else {
+          setBankAccount(response.bankAccount ?? null);
+        }
       }
     } catch (error) {
       console.error("Failed to fetch wallet data:", error);
-      toast.error("An unexpected error occurred while fetching wallet data");
+      toast.error("An unexpected error occurred while fetching data");
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (user?.id) fetchWallet();
+    if (user?.id) fetchWalletData();
     // eslint-disable-next-line
   }, [user?.id]);
 
-  const onSubmit = (values: z.infer<typeof WalletDepositSchema>) => {
+  const onSubmit = (values: z.infer<typeof WithdrawalSchema>) => {
     if (!user?.id) {
       toast.error("User not authenticated");
       return;
     }
 
+    if (values.amount > balance) {
+      toast.error("Insufficient balance");
+      return;
+    }
+
     startTransition(async () => {
       try {
-        const res = await createDeposit(user.id ?? "", values.amount);
+        const res = await createWithdrawal(
+          user.id ?? "",
+          values.amount
+        );
 
         if (res && typeof res === "object") {
           const response = res as ApiResponse;
           if (response.error) {
             toast.error(response.error);
           } else {
-            toast.success(response.success || "Deposit successful!");
+            toast.success(response.success || "Withdrawal request submitted!");
             form.reset({ amount: 0 });
             setDialogOpen(false);
-            await fetchWallet(); // Refresh wallet data
+            await fetchWalletData(); // Refresh data
           }
         } else {
-          toast.error("Failed to process deposit");
+          toast.error("Failed to process withdrawal");
         }
       } catch (error) {
-        console.error("Error creating deposit:", error);
-        toast.error("An unexpected error occurred while processing deposit");
+        console.error("Error creating withdrawal:", error);
+        toast.error("An unexpected error occurred while processing withdrawal");
       }
     });
   };
@@ -129,6 +166,10 @@ const Wallet = () => {
     }
   };
 
+  const getStatusText = (status: string) => {
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  };
+
   // Show loading state
   if (isLoading) {
     return (
@@ -147,7 +188,7 @@ const Wallet = () => {
 
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Deposit History</CardTitle>
+            <CardTitle>Withdrawal History</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="animate-pulse space-y-3">
@@ -166,7 +207,7 @@ const Wallet = () => {
       <div className="flex flex-col items-center py-10 gap-8">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Wallet</CardTitle>
+            <CardTitle>Withdraw</CardTitle>
           </CardHeader>
           <CardContent className="text-center">
             <div className="py-8">
@@ -175,7 +216,7 @@ const Wallet = () => {
                 Authentication Required
               </h3>
               <p className="text-muted-foreground">
-                Please log in to access your wallet and manage deposits
+                Please log in to access your wallet and withdraw money
               </p>
               <Button
                 className="mt-4"
@@ -200,33 +241,62 @@ const Wallet = () => {
           <div className="text-3xl font-bold mb-4">₹{balance}</div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button>Deposit</Button>
+              <Button 
+                disabled={balance < 1 || !bankAccount || !bankAccount.isActive}
+                className="w-full"
+              >
+                {!bankAccount 
+                  ? "Add Bank Account First" 
+                  : !bankAccount.isActive
+                    ? "Bank Account Inactive"
+                    : balance < 1 
+                      ? "Insufficient Balance" 
+                      : "Withdraw"
+                }
+              </Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogTitle>Deposit Money</DialogTitle>
+              <DialogTitle>Withdraw Money</DialogTitle>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="flex flex-col gap-3"
+                className="flex flex-col gap-4"
               >
+                <div className="text-sm text-muted-foreground">
+                  Available Balance: ₹{balance}
+                </div>
+                
+                {bankAccount && (
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="text-sm font-medium">Withdraw to:</div>
+                    <div className="text-sm text-muted-foreground">
+                      {bankAccount.bankName} - ****{bankAccount.accountNumber.slice(-4)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {bankAccount.accountHolder}
+                    </div>
+                  </div>
+                )}
+
                 <Input
                   type="number"
                   min={1}
-                  max={10000}
+                  max={balance}
                   {...form.register("amount", { valueAsNumber: true })}
-                  placeholder="Enter amount (max 10,000)"
+                  placeholder={`Enter amount (min ₹1, max ₹${balance})`}
                   disabled={isPending}
                   required
                 />
+
                 <DialogFooter>
                   <Button
                     type="submit"
                     disabled={
                       isPending ||
                       form.watch("amount") <= 0 ||
-                      form.watch("amount") > 10000
+                      form.watch("amount") > balance
                     }
                   >
-                    {isPending ? "Depositing..." : "Deposit"}
+                    {isPending ? "Processing..." : "Withdraw"}
                   </Button>
                   <DialogClose asChild>
                     <Button type="button" variant="outline">
@@ -237,27 +307,51 @@ const Wallet = () => {
               </form>
             </DialogContent>
           </Dialog>
+
+          {!bankAccount && (
+            <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                No bank account found.{" "}
+                <Button
+                  variant="link"
+                  className="p-0 h-auto text-yellow-800 dark:text-yellow-200"
+                  onClick={() => router.push("/bank-account")}
+                >
+                  Add one now
+                </Button>
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Deposit History</CardTitle>
+          <CardTitle>Withdrawal History</CardTitle>
         </CardHeader>
         <CardContent>
-          {transactions.length === 0 ? (
-            <div className="text-muted-foreground">No deposit history yet.</div>
+          {withdrawals.length === 0 ? (
+            <div className="text-muted-foreground text-center py-4">
+              No withdrawal history yet.
+            </div>
           ) : (
-            <ul className="divide-y">
-              {transactions.map((tx) => (
-                <li key={tx.id} className="py-2 flex flex-col">
-                  <span className="font-medium">₹{tx.amount}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(tx.createdAt).toLocaleString()}
-                  </span>
-                  <span className={`text-xs ${getStatusColor(tx.status)}`}>
-                    {tx.status}
-                  </span>
+            <ul className="divide-y space-y-2">
+              {withdrawals.map((withdrawal) => (
+                <li key={withdrawal.id} className="py-3 flex flex-col gap-1">
+                  <div className="flex justify-between items-start">
+                    <span className="font-medium">₹{withdrawal.amount}</span>
+                    <span 
+                      className={`text-xs px-2 py-1 rounded-full ${getStatusColor(withdrawal.status)}`}
+                    >
+                      {getStatusText(withdrawal.status)}
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {withdrawal.bankName} - ****{withdrawal.accountNumber.slice(-4)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(withdrawal.createdAt).toLocaleString()}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -268,4 +362,4 @@ const Wallet = () => {
   );
 };
 
-export default Wallet;
+export default Withdraw;

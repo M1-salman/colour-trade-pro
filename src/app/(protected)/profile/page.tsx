@@ -17,7 +17,7 @@ const Profile = () => {
 
   // 🔥 Get both user and update function from the hook
   const { user: session, update: updateSession } = useCurrentUser();
-
+  
   const handleImageClick = () => {
     fileInputRef.current?.click();
   };

@@ -25,3 +25,10 @@ export const WalletDepositSchema = z.object({
     .min(1, { message: "Minimum deposit is ₹1" })
     .max(10000, { message: "Maximum deposit is ₹10,000" }),
 });
+
+export const WithdrawalSchema = z.object({
+  amount: z
+    .number()
+    .min(1, "Minimum withdrawal amount is ₹1")
+    .max(100000, "Maximum withdrawal amount is ₹1,00,000"),
+});

@@ -109,9 +109,6 @@ model Withdrawal {
   bankAccountId String
   amount        Int              @db.Integer
   status        WithdrawalStatus @default(PENDING)
-  processedAt   DateTime?
-  rejectedAt    DateTime?
-  reason        String? // Rejection reason or processing notes
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
