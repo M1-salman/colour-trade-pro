@@ -37,7 +37,6 @@ const Sidebar = ({ isOpen, onClose, user }: SidebarProps) => {
     { icon: History, label: "Trade History", href: "/trade-history" },
     { icon: Wallet, label: "Wallet", href: "/wallet" },
     { icon: CreditCard, label: "Withdraw", href: "/withdraw" },
-    { icon: History, label: "Withdrawal History", href: "/withdrawal-history" },
     { icon: Building2, label: "Bank Account", href: "/bank-account" },
   ];
 

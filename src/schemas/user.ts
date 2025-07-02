@@ -30,5 +30,5 @@ export const WithdrawalSchema = z.object({
   amount: z
     .number()
     .min(1, "Minimum withdrawal amount is ₹1")
-    .max(100000, "Maximum withdrawal amount is ₹1,00,000"),
+    .max(10000, "Maximum withdrawal amount is ₹10000"),
 });

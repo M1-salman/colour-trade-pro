@@ -121,12 +121,17 @@ const Wallet = () => {
         return "text-yellow-600";
       case "processing":
         return "text-blue-600";
+      case "failed":
       case "rejected":
       case "cancelled":
         return "text-red-600";
       default:
         return "text-gray-600";
     }
+  };
+
+  const getStatusText = (status: string) => {
+    return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
   // Show loading state
@@ -246,18 +251,26 @@ const Wallet = () => {
         </CardHeader>
         <CardContent>
           {transactions.length === 0 ? (
-            <div className="text-muted-foreground">No deposit history yet.</div>
+            <div className="text-muted-foreground text-center py-4">
+              No deposit history yet.
+            </div>
           ) : (
-            <ul className="divide-y">
+            <ul className="divide-y space-y-2">
               {transactions.map((tx) => (
-                <li key={tx.id} className="py-2 flex flex-col">
-                  <span className="font-medium">₹{tx.amount}</span>
-                  <span className="text-xs text-muted-foreground">
+                <li key={tx.id} className="py-3 flex flex-col gap-1">
+                  <div className="flex justify-between items-start">
+                    <span className="font-medium">₹{tx.amount}</span>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${getStatusColor(
+                        tx.status.toLowerCase()
+                      )}`}
+                    >
+                      {getStatusText(tx.status)}
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
                     {new Date(tx.createdAt).toLocaleString()}
-                  </span>
-                  <span className={`text-xs ${getStatusColor(tx.status)}`}>
-                    {tx.status}
-                  </span>
+                  </div>
                 </li>
               ))}
             </ul>
