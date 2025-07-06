@@ -13,7 +13,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
   // If fields are not valid
   if (!validatedFields.success) {
     return { error: "Invalid fields 😞" };
-  } 
+  }
 
   const { name, email, password } = validatedFields.data;
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -25,15 +25,26 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     return { error: "Email already taken 😞" };
   }
 
-  // succes code
-  await db.user.create({
-    data: {
-      name,
-      email,
-      password: hashedPassword,
-    },
-  });
+  try {
+    await db.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
+        data: {
+          name,
+          email,
+          password: hashedPassword,
+        },
+      });
 
-  // If fields are valid
-  return { success: "User created successfully!" };
+      await tx.wallet.create({
+        data: {
+          userId: createdUser.id,
+          balance: 0,
+        },
+      });
+    });
+    // If fields are valid
+    return { success: "User created successfully!" };
+  } catch (error) {
+    return { error: "Failed to register user. Please try again." };
+  }
 };
