@@ -122,11 +122,10 @@ model Withdrawal {
 model Trade {
   id        String      @id @default(cuid())
   userId    String
-  gameId    String // Reference to the color game
-  color     String // The color user bet on
+  color     TradeColor // The color user bet on
+  number    Int         @db.Integer // The number user bet on
   amount    Int         @db.Integer
   result    TradeResult
-  winAmount Int?        @db.Integer // Amount won (if any)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
@@ -166,3 +165,10 @@ enum TradeResult {
   LOSS
   CANCELLED
 }
+
+enum TradeColor {
+  RED
+  VIOLET
+  GREEN
+}
+
