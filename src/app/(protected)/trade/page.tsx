@@ -14,11 +14,11 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Timer, Coins, TrendingUp, TrendingDown } from "lucide-react";
-import { getWallet } from "@/actions/trade";
+import { getWallet, placeTrade, processRoundResults } from "@/actions/trade";
 import { getServerTime } from "@/actions/server-time";
 
 interface GameState {
-  phase: "betting" | "waiting" | "result";
+  phase: "betting" | "waiting";
   timeLeft: number;
 }
 
@@ -32,10 +32,17 @@ interface ApiResponse {
   error?: string;
   success?: string;
   balance?: number;
+  trade?: any;
+}
+
+interface RoundResult {
+  color: string;
+  number: number;
 }
 
 const Trade = () => {
-  const { user } = useCurrentUser();
+  const { user, update } = useCurrentUser();
+
   const [gameState, setGameState] = useState<GameState>({
     phase: "betting",
     timeLeft: 60,
@@ -51,8 +58,12 @@ const Trade = () => {
   const [lastResult, setLastResult] = useState<{
     won: boolean;
     amount: number;
-    result: { color: string; number: number };
+    result: RoundResult;
   } | null>(null);
+
+  useEffect(() => {
+    update();
+  }, []);
 
   const fetchWallet = async () => {
     if (!user?.id) {
@@ -83,16 +94,52 @@ const Trade = () => {
     }
   };
 
+  const handleRoundEnd = async () => {
+    if (!user?.id) return;
+
+    try {
+      // Process round results
+      const result = await processRoundResults();
+
+      if (result.success && result.result && result.trades) {
+        // Find current user's trade result
+        const userTradeResult = result.trades.find(
+          (trade: any) => trade.userId === user.id
+        );
+
+        if (userTradeResult) {
+          setLastResult({
+            won: userTradeResult.isWinner,
+            amount: userTradeResult.isWinner
+              ? userTradeResult.winAmount
+              : userTradeResult.betAmount, // Use betAmount from trade result
+            result: {
+              color: result.result.color.toLowerCase(),
+              number: result.result.number,
+            },
+          });
+
+          // Update wallet balance
+          setWalletBalance(userTradeResult.newBalance);
+
+          // Show result dialog
+          setShowResult(true);
+        }
+      }
+      setUserBet(null);
+    } catch (error) {
+      toast.error("Failed to process round results");
+    }
+  };
+
   useEffect(() => {
     if (user?.id) fetchWallet();
-    // eslint-disable-next-line
   }, [user?.id]);
 
   useEffect(() => {
     const syncTimer = async () => {
       try {
         const serverTime = await getServerTime();
-
         const cycle = 60000; // 60 seconds
         const timePassed = serverTime % cycle;
         const timeLeft = Math.floor((cycle - timePassed) / 1000);
@@ -100,21 +147,41 @@ const Trade = () => {
         setGameState((prev) => ({
           ...prev,
           timeLeft,
+          phase: timeLeft <= 5 ? "waiting" : "betting",
         }));
 
-        startCountdown();
+        startCountdown(timeLeft);
       } catch (err) {
         console.error("Failed to fetch server time:", err);
       }
     };
 
-    const startCountdown = () => {
+    const startCountdown = (initialTimeLeft: number) => {
       const interval = setInterval(() => {
         setGameState((prev) => {
-          if (prev.timeLeft <= 1) {
-            return { ...prev, timeLeft: 60 }; // Restart timer every 60s
+          const newTimeLeft = prev.timeLeft <= 1 ? 60 : prev.timeLeft - 1;
+
+          // Don't change phase if it's already "waiting" (user placed bet or timer <= 5)
+          // Only change to "betting" if timer resets to 60 and no active bet
+          let newPhase = prev.phase;
+
+          if (newTimeLeft === 60) {
+            // Timer reset - check if user has active bet
+            newPhase = "betting"; // This will be overridden by userBet check below
+          } else if (newTimeLeft <= 5) {
+            newPhase = "waiting";
           }
-          return { ...prev, timeLeft: prev.timeLeft - 1 };
+          // If phase is already "waiting" and timer > 5, keep it as "waiting"
+
+          // Trigger round end processing when timer reaches 0
+          if (prev.timeLeft === 1) {
+            setTimeout(() => handleRoundEnd(), 100);
+          }
+
+          return {
+            timeLeft: newTimeLeft,
+            phase: newPhase,
+          };
         });
       }, 1000);
 
@@ -122,9 +189,17 @@ const Trade = () => {
     };
 
     syncTimer();
+  }, [user?.id]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Add a separate useEffect to handle phase changes when userBet changes
+  useEffect(() => {
+    if (userBet) {
+      setGameState((prev) => ({
+        ...prev,
+        phase: "waiting",
+      }));
+    }
+  }, [userBet]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -143,9 +218,7 @@ const Trade = () => {
       case "betting":
         return "Place Your Bets";
       case "waiting":
-        return "Betting Closed";
-      case "result":
-        return "Result Time";
+        return "Betting closed!, Wait for the result.";
       default:
         return "";
     }
@@ -172,28 +245,56 @@ const Trade = () => {
   };
 
   const handlePlaceBet = () => {
-    if (!canPlaceBet()) return;
+    if (!canPlaceBet() || !user?.id) return;
 
     startTransition(async () => {
       try {
-        // In real implementation, this would be an API call
-        setUserBet({
-          color: selectedColor,
-          number: selectedNumber!,
-          amount: betAmount,
-        });
-        toast.success("Bet placed successfully!");
+        const result = await placeTrade(
+          user.id ?? "",
+          selectedColor,
+          selectedNumber!,
+          betAmount
+        );
+
+        if (result.error) {
+          toast.error(result.error);
+        } else if (result.success) {
+          setUserBet({
+            color: selectedColor,
+            number: selectedNumber!,
+            amount: betAmount,
+          });
+
+          // Update wallet balance
+          setWalletBalance((prev) => prev - betAmount);
+          setGameState((prev) => ({
+            ...prev,
+            phase: "waiting",
+          }));
+
+          // Reset selections
+          setSelectedColor("");
+          setSelectedNumber(null);
+          setBetAmount(0);
+
+          toast.success(result.success);
+        }
       } catch (error) {
+        console.error("Failed to place bet:", error);
         toast.error("Failed to place bet");
       }
     });
+  };
+
+  const handleResultClose = () => {
+    setShowResult(false);
+    setLastResult(null);
   };
 
   // Show loading state
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
-        {/* Timer Section Loading */}
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <div className="text-center">
@@ -208,7 +309,6 @@ const Trade = () => {
           </CardContent>
         </Card>
 
-        {/* Wallet Balance Loading */}
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <div className="animate-pulse">
@@ -232,9 +332,7 @@ const Trade = () => {
             <div className={`text-6xl font-bold ${getTimerColor()}`}>
               {formatTime(gameState.timeLeft)}
             </div>
-            <div className="text-lg font-medium mt-2">
-              {gameState.timeLeft <= 5 ? "Betting Closed" : getPhaseText()}
-            </div>
+            <div className="text-lg font-medium mt-2">{getPhaseText()}</div>
           </div>
         </CardContent>
       </Card>
@@ -291,7 +389,9 @@ const Trade = () => {
                       selectedColor === color.name ? "ring-4 ring-white" : ""
                     }`}
                   >
-                    <span className="">{color.name}</span>
+                    <span className="text-white font-medium capitalize">
+                      {color.name}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -378,7 +478,7 @@ const Trade = () => {
       )}
 
       {/* Result Popup */}
-      <Dialog open={showResult} onOpenChange={setShowResult}>
+      <Dialog open={showResult} onOpenChange={handleResultClose}>
         <DialogContent>
           <DialogTitle className="text-center">
             {lastResult?.won
@@ -411,10 +511,15 @@ const Trade = () => {
               )}
               {lastResult?.won ? "+" : "-"}₹{lastResult?.amount}
             </div>
+            <div className="text-sm text-gray-600">
+              New Balance: ₹{walletBalance}
+            </div>
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button className="w-full">Continue Trading</Button>
+              <Button className="w-full" onClick={handleResultClose}>
+                Continue Trading
+              </Button>
             </DialogClose>
           </DialogFooter>
         </DialogContent>

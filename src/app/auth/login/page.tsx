@@ -20,13 +20,11 @@ import { useTransition, useState } from "react";
 import { login } from "@/actions/login";
 
 import { FormError } from "@/components/FormError";
-import { FormSuccess } from "@/components/FormSuccess";
 import Link from "next/link";
 
 const LoginForm = () => {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | undefined>("");
-  const [success, setSuccess] = useState<string | undefined>("");
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -40,7 +38,6 @@ const LoginForm = () => {
     startTransition(() => {
       login(values).then((data) => {
         setError(data?.error);
-        // setSuccess(data?.success);
       });
     });
   };
@@ -107,7 +104,6 @@ const LoginForm = () => {
             </div>
 
             <FormError message={error} />
-            <FormSuccess message={success} />
             <Button
               disabled={isPending}
               type="submit"

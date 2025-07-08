@@ -163,6 +163,7 @@ enum WithdrawalStatus {
 enum TradeResult {
   WIN
   LOSS
+  PENDING
   CANCELLED
 }
 
