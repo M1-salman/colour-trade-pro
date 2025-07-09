@@ -7,6 +7,7 @@ import {
   TransactionStatus,
   TransactionType,
 } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 
 export const getWallet = async (userId: string) => {
   try {
@@ -291,3 +292,51 @@ export const processRoundResults = async () => {
     return { error: "Failed to process round results." };
   }
 };
+
+export async function getUserTrades(userId: string) {
+  try {
+    if (!userId) {
+      return { error: "User ID is required" };
+    }
+
+    // Fetch user trades from database
+    const trades = await db.trade.findMany({
+      where: {
+        userId: userId,
+      },
+      orderBy: {
+        createdAt: "desc", // Most recent first
+      },
+      select: {
+        id: true,
+        color: true,
+        number: true,
+        amount: true,
+        result: true,
+        createdAt: true,
+      },
+    });
+
+    // Transform the data to match the expected format
+    const formattedTrades = trades.map((trade) => ({
+      id: trade.id,
+      color: trade.color as "RED" | "VIOLET" | "GREEN",
+      number: trade.number,
+      amount: trade.amount,
+      result: trade.result as "WIN" | "LOSS" | "PENDING" | "CANCELLED",
+      createdAt: trade.createdAt.toISOString(),
+    }));
+
+    revalidatePath("/trade-history");
+
+    return {
+      success: "Trade history fetched successfully",
+      trades: formattedTrades,
+    };
+  } catch (error) {
+    console.error("Error fetching trade history:", error);
+    return {
+      error: "Failed to fetch trade history. Please try again.",
+    };
+  }
+}
