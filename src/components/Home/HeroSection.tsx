@@ -33,7 +33,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative px-6 py-20 text-center overflow-hidden min-h-screen flex items-center">
+    <section className="relative px-6 py-20 text-center overflow-hidden min-h-screen flex sm:items-center">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-r from-violet-900/20 via-blue-900/20 to-cyan-900/20 backdrop-blur-3xl"></div>
 

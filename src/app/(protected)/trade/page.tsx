@@ -305,7 +305,7 @@ const Trade = () => {
 
   if (isLoading || !isTimerInitialized) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
+      <div className="flex flex-col items-center sm:justify-center min-h-screen sm:p-4 px-4 py-20 gap-6">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <div className="text-center">
@@ -332,7 +332,7 @@ const Trade = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
+    <div className="flex flex-col items-center sm:justify-center min-h-screen sm:p-4 px-4 py-20 gap-6">
       {/* Timer Section */}
       <Card className="w-full max-w-md">
         <CardContent className="pt-6">
