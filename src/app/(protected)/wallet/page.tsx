@@ -137,7 +137,7 @@ const Wallet = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center py-10 gap-8">
+      <div className="flex flex-col items-center py-10 gap-8 sm:px-0 px-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Wallet Balance</CardTitle>
@@ -168,7 +168,7 @@ const Wallet = () => {
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center py-10 gap-8">
+      <div className="flex flex-col items-center py-10 gap-8 sm:px-0 px-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Wallet</CardTitle>
@@ -196,7 +196,7 @@ const Wallet = () => {
   }
 
   return (
-    <div className="flex flex-col items-center py-10 gap-8">
+    <div className="flex flex-col items-center py-10 gap-8 sm:px-0 px-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Wallet Balance</CardTitle>

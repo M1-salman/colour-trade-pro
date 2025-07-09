@@ -2,10 +2,10 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { 
-  createWithdrawal, 
-  getWalletAndWithdrawals, 
-  getUserBankAccount 
+import {
+  createWithdrawal,
+  getWalletAndWithdrawals,
+  getUserBankAccount,
 } from "@/actions/withdraw";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -62,7 +62,7 @@ const Withdraw = () => {
 
   const form = useForm<z.infer<typeof WithdrawalSchema>>({
     resolver: zodResolver(WithdrawalSchema),
-    defaultValues: { 
+    defaultValues: {
       amount: 0,
     },
   });
@@ -125,10 +125,7 @@ const Withdraw = () => {
 
     startTransition(async () => {
       try {
-        const res = await createWithdrawal(
-          user.id ?? "",
-          values.amount
-        );
+        const res = await createWithdrawal(user.id ?? "", values.amount);
 
         if (res && typeof res === "object") {
           const response = res as ApiResponse;
@@ -173,7 +170,7 @@ const Withdraw = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center py-10 gap-8">
+      <div className="flex flex-col items-center py-10 gap-8 sm:px-0 px-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Wallet Balance</CardTitle>
@@ -204,7 +201,7 @@ const Withdraw = () => {
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center py-10 gap-8">
+      <div className="flex flex-col items-center py-10 gap-8 sm:px-0 px-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Withdraw</CardTitle>
@@ -232,7 +229,7 @@ const Withdraw = () => {
   }
 
   return (
-    <div className="flex flex-col items-center py-10 gap-8">
+    <div className="flex flex-col items-center py-10 gap-8 sm:px-0 px-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Wallet Balance</CardTitle>
@@ -241,18 +238,17 @@ const Withdraw = () => {
           <div className="text-3xl font-bold mb-4">₹{balance}</div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button 
+              <Button
                 disabled={balance < 1 || !bankAccount || !bankAccount.isActive}
                 className="w-full"
               >
-                {!bankAccount 
-                  ? "Add Bank Account First" 
+                {!bankAccount
+                  ? "Add Bank Account First"
                   : !bankAccount.isActive
-                    ? "Bank Account Inactive"
-                    : balance < 1 
-                      ? "Insufficient Balance" 
-                      : "Withdraw"
-                }
+                  ? "Bank Account Inactive"
+                  : balance < 1
+                  ? "Insufficient Balance"
+                  : "Withdraw"}
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -264,12 +260,13 @@ const Withdraw = () => {
                 <div className="text-sm text-muted-foreground">
                   Available Balance: ₹{balance}
                 </div>
-                
+
                 {bankAccount && (
                   <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <div className="text-sm font-medium">Withdraw to:</div>
                     <div className="text-sm text-muted-foreground">
-                      {bankAccount.bankName} - ****{bankAccount.accountNumber.slice(-4)}
+                      {bankAccount.bankName} - ****
+                      {bankAccount.accountNumber.slice(-4)}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {bankAccount.accountHolder}
@@ -340,14 +337,17 @@ const Withdraw = () => {
                 <li key={withdrawal.id} className="py-3 flex flex-col gap-1">
                   <div className="flex justify-between items-start">
                     <span className="font-medium">₹{withdrawal.amount}</span>
-                    <span 
-                      className={`text-xs px-2 py-1 rounded-full ${getStatusColor(withdrawal.status)}`}
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${getStatusColor(
+                        withdrawal.status
+                      )}`}
                     >
                       {getStatusText(withdrawal.status)}
                     </span>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {withdrawal.bankName} - ****{withdrawal.accountNumber.slice(-4)}
+                    {withdrawal.bankName} - ****
+                    {withdrawal.accountNumber.slice(-4)}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {new Date(withdrawal.createdAt).toLocaleString()}

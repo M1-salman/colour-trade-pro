@@ -229,7 +229,7 @@ const TradeHistory = () => {
   const netPL = stats.totalWinAmount - stats.totalLossAmount;
 
   return (
-    <div className="flex flex-col items-center py-10 gap-8">
+    <div className="flex flex-col items-center py-10 gap-8 sm:px-0 px-4">
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl">
         <Card>

@@ -136,7 +136,7 @@ const BankAccount = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center py-10 gap-8">
+      <div className="flex flex-col items-center py-10 gap-8 sm:px-0 px-4">
         <div className="w-full max-w-md">
           <h2 className="text-2xl font-bold mb-4">Bank Account</h2>
           <div className="bg-zinc-900 rounded-lg p-6 shadow animate-pulse">
@@ -153,7 +153,7 @@ const BankAccount = () => {
   // Show message if user is not authenticated
   if (!user) {
     return (
-      <div className="flex flex-col items-center py-10 gap-8">
+      <div className="flex flex-col items-center py-10 gap-8 sm:px-0 px-4">
         <div className="w-full max-w-md">
           <h2 className="text-2xl font-bold mb-4">Bank Account</h2>
           <div className="bg-zinc-900 rounded-lg p-6 shadow text-center">
@@ -170,7 +170,7 @@ const BankAccount = () => {
   }
 
   return (
-    <div className="flex flex-col items-center py-10 gap-8">
+    <div className="flex flex-col items-center py-10 gap-8 sm:px-0 px-4">
       <div className="w-full max-w-md">
         <h2 className="text-2xl font-bold mb-4">Bank Account</h2>
         {account ? (

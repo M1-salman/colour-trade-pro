@@ -53,6 +53,7 @@ const Trade = () => {
   const [betAmount, setBetAmount] = useState<number>(0);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isTimerInitialized, setIsTimerInitialized] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [showResult, setShowResult] = useState(false);
   const [lastResult, setLastResult] = useState<{
@@ -68,12 +69,10 @@ const Trade = () => {
   const fetchWallet = async () => {
     if (!user?.id) {
       toast.error("User not authenticated");
-      setIsLoading(false);
       return;
     }
 
     try {
-      setIsLoading(true);
       const res = await getWallet(user.id);
 
       if (res && typeof res === "object") {
@@ -89,20 +88,64 @@ const Trade = () => {
     } catch (error) {
       console.error("Failed to fetch wallet data:", error);
       toast.error("An unexpected error occurred while fetching wallet data");
-    } finally {
-      setIsLoading(false);
     }
+  };
+
+  const syncTimer = async () => {
+    try {
+      const serverTime = await getServerTime();
+      const cycle = 60000; // 60 seconds
+      const timePassed = serverTime % cycle;
+      const timeLeft = Math.floor((cycle - timePassed) / 1000);
+
+      setGameState((prev) => ({
+        ...prev,
+        timeLeft,
+        phase: timeLeft <= 5 ? "waiting" : "betting",
+      }));
+
+      setIsTimerInitialized(true);
+      startCountdown(timeLeft);
+    } catch (err) {
+      console.error("Failed to fetch server time:", err);
+      setIsTimerInitialized(true);
+    }
+  };
+
+  const startCountdown = (initialTimeLeft: number) => {
+    const interval = setInterval(() => {
+      setGameState((prev) => {
+        const newTimeLeft = prev.timeLeft <= 1 ? 60 : prev.timeLeft - 1;
+
+        let newPhase = prev.phase;
+
+        if (newTimeLeft === 60) {
+          newPhase = "betting";
+        } else if (newTimeLeft <= 5) {
+          newPhase = "waiting";
+        }
+
+        if (prev.timeLeft === 1) {
+          setTimeout(() => handleRoundEnd(), 100);
+        }
+
+        return {
+          timeLeft: newTimeLeft,
+          phase: newPhase,
+        };
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
   };
 
   const handleRoundEnd = async () => {
     if (!user?.id) return;
 
     try {
-      // Process round results
       const result = await processRoundResults();
 
       if (result.success && result.result && result.trades) {
-        // Find current user's trade result
         const userTradeResult = result.trades.find(
           (trade: any) => trade.userId === user.id
         );
@@ -112,17 +155,14 @@ const Trade = () => {
             won: userTradeResult.isWinner,
             amount: userTradeResult.isWinner
               ? userTradeResult.winAmount
-              : userTradeResult.betAmount, // Use betAmount from trade result
+              : userTradeResult.betAmount,
             result: {
               color: result.result.color.toLowerCase(),
               number: result.result.number,
             },
           });
 
-          // Update wallet balance
           setWalletBalance(userTradeResult.newBalance);
-
-          // Show result dialog
           setShowResult(true);
         }
       }
@@ -133,65 +173,19 @@ const Trade = () => {
   };
 
   useEffect(() => {
-    if (user?.id) fetchWallet();
+    if (user?.id) {
+      const initializeData = async () => {
+        setIsLoading(true);
+
+        await Promise.all([fetchWallet(), syncTimer()]);
+
+        setIsLoading(false);
+      };
+
+      initializeData();
+    }
   }, [user?.id]);
 
-  useEffect(() => {
-    const syncTimer = async () => {
-      try {
-        const serverTime = await getServerTime();
-        const cycle = 60000; // 60 seconds
-        const timePassed = serverTime % cycle;
-        const timeLeft = Math.floor((cycle - timePassed) / 1000);
-
-        setGameState((prev) => ({
-          ...prev,
-          timeLeft,
-          phase: timeLeft <= 5 ? "waiting" : "betting",
-        }));
-
-        startCountdown(timeLeft);
-      } catch (err) {
-        console.error("Failed to fetch server time:", err);
-      }
-    };
-
-    const startCountdown = (initialTimeLeft: number) => {
-      const interval = setInterval(() => {
-        setGameState((prev) => {
-          const newTimeLeft = prev.timeLeft <= 1 ? 60 : prev.timeLeft - 1;
-
-          // Don't change phase if it's already "waiting" (user placed bet or timer <= 5)
-          // Only change to "betting" if timer resets to 60 and no active bet
-          let newPhase = prev.phase;
-
-          if (newTimeLeft === 60) {
-            // Timer reset - check if user has active bet
-            newPhase = "betting"; // This will be overridden by userBet check below
-          } else if (newTimeLeft <= 5) {
-            newPhase = "waiting";
-          }
-          // If phase is already "waiting" and timer > 5, keep it as "waiting"
-
-          // Trigger round end processing when timer reaches 0
-          if (prev.timeLeft === 1) {
-            setTimeout(() => handleRoundEnd(), 100);
-          }
-
-          return {
-            timeLeft: newTimeLeft,
-            phase: newPhase,
-          };
-        });
-      }, 1000);
-
-      return () => clearInterval(interval);
-    };
-
-    syncTimer();
-  }, [user?.id]);
-
-  // Add a separate useEffect to handle phase changes when userBet changes
   useEffect(() => {
     if (userBet) {
       setGameState((prev) => ({
@@ -200,6 +194,26 @@ const Trade = () => {
       }));
     }
   }, [userBet]);
+
+  // Add Enter key listener
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key === "Enter" && canPlaceBet()) {
+        handlePlaceBet();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyPress);
+    return () => document.removeEventListener("keydown", handleKeyPress);
+  }, [
+    selectedColor,
+    selectedNumber,
+    betAmount,
+    gameState.phase,
+    userBet,
+    walletBalance,
+    isPending,
+  ]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -265,14 +279,12 @@ const Trade = () => {
             amount: betAmount,
           });
 
-          // Update wallet balance
           setWalletBalance((prev) => prev - betAmount);
           setGameState((prev) => ({
             ...prev,
             phase: "waiting",
           }));
 
-          // Reset selections
           setSelectedColor("");
           setSelectedNumber(null);
           setBetAmount(0);
@@ -291,8 +303,7 @@ const Trade = () => {
     setLastResult(null);
   };
 
-  // Show loading state
-  if (isLoading) {
+  if (isLoading || !isTimerInitialized) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-6">
         <Card className="w-full max-w-md">

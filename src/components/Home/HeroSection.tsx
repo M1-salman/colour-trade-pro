@@ -63,8 +63,7 @@ const HeroSection = () => {
         <p className="text-md text-slate-300 mb-8 max-w-2xl mx-auto leading-relaxed">
           Welcome to Colour Trade Pro, one of India's fastest-growing platforms
           for colour trading with real cash prizes. Where you can quickly earn
-          with colour trading, Colour Trade Pro gives you an exciting way to
-          play and win. With fast payouts.
+          with colour trading, Register to get ₹100 bonus.
         </p>
 
         {/* CTA Buttons */}
