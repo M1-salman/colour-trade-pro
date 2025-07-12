@@ -112,33 +112,6 @@ const Trade = () => {
     }
   };
 
-  const startCountdown = (initialTimeLeft: number) => {
-    const interval = setInterval(() => {
-      setGameState((prev) => {
-        const newTimeLeft = prev.timeLeft <= 1 ? 60 : prev.timeLeft - 1;
-
-        let newPhase = prev.phase;
-
-        if (newTimeLeft === 60) {
-          newPhase = "betting";
-        } else if (newTimeLeft <= 5) {
-          newPhase = "waiting";
-        }
-
-        if (prev.timeLeft === 1) {
-          setTimeout(() => handleRoundEnd(), 100);
-        }
-
-        return {
-          timeLeft: newTimeLeft,
-          phase: newPhase,
-        };
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  };
-
   const handleRoundEnd = async () => {
     if (!user?.id) return;
 
@@ -171,6 +144,45 @@ const Trade = () => {
       toast.error("Failed to process round results");
     }
   };
+
+  const startCountdown = (initialTimeLeft: number) => {
+    const interval = setInterval(() => {
+      setGameState((prev) => {
+        const newTimeLeft = prev.timeLeft <= 1 ? 60 : prev.timeLeft - 1;
+
+        let newPhase = prev.phase;
+
+        if (newTimeLeft === 60) {
+          newPhase = "betting";
+        } else if (newTimeLeft <= 5) {
+          newPhase = "waiting";
+        }
+
+        if (prev.timeLeft === 1) {
+          setTimeout(() => handleRoundEnd(), 100);
+        }
+
+        return {
+          timeLeft: newTimeLeft,
+          phase: newPhase,
+        };
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  };
+
+  useEffect(() => {
+    if (gameState.timeLeft === 0 && gameState.phase === "waiting") {
+      handleRoundEnd();
+    }
+  }, [gameState.timeLeft, gameState.phase]);
+
+  useEffect(() => {
+    if (lastResult) {
+      setShowResult(true);
+    }
+  }, [lastResult]);
 
   useEffect(() => {
     if (user?.id) {
