@@ -83,6 +83,10 @@ export const createWithdrawal = async (userId: string, amount: number) => {
       return { error: "Wallet not found" };
     }
 
+    if (wallet.isBlocked) {
+      return { error: "Wallet is blocked. Cannot withdraw." };
+    }
+
     if (wallet.balance < amount) {
       return { error: "Insufficient balance" };
     }

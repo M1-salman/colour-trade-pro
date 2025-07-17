@@ -35,10 +35,17 @@ export const {
     }),
   ],
   callbacks: {
-    async jwt({ token, session, trigger }) {
+    async jwt({ token, user, trigger, session }) {
+      // Add isAdmin to token when user signs in
+      if (user && "isAdmin" in user) {
+        token.isAdmin = user.isAdmin;
+      }
+
+      // Handle session updates
       if (trigger === "update" && session?.image) {
         token.picture = session?.image;
       }
+
       return token;
     },
     async session({ session, token }) {
@@ -48,6 +55,7 @@ export const {
           ...session.user,
           image: token.picture,
           id: token.sub,
+          isAdmin: token.isAdmin ?? false, // Add isAdmin to session with fallback
         },
       };
     },
