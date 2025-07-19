@@ -44,7 +44,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     });
     // If fields are valid
     return { success: "User created successfully!" };
-  } catch (error) {
+  } catch {
     return { error: "Failed to register user. Please try again." };
   }
 };

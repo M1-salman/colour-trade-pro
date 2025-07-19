@@ -53,9 +53,9 @@ export const {
         ...session,
         user: {
           ...session.user,
-          image: token.picture,
-          id: token.sub,
-          isAdmin: token.isAdmin ?? false, // Add isAdmin to session with fallback
+          image: token.picture ?? null,
+          id: typeof token.sub === "string" ? token.sub : "",
+          isAdmin: typeof token.isAdmin === "boolean" ? token.isAdmin : false, // Add isAdmin to session with fallback
         },
       };
     },

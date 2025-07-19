@@ -10,7 +10,7 @@ export const getBankAccount = async (userId: string) => {
     const account = await db.bankAccount.findUnique({ where: { userId } });
     if (!account) return null;
     return account;
-  } catch (error) {
+  } catch {
     return null;
   }
 };
@@ -44,7 +44,7 @@ export const createBankAccount = async (
     });
     revalidatePath("/bank-account");
     return { success: "Bank account added successfully!" };
-  } catch (error) {
+  } catch {
     return { error: "Failed to add bank account!" };
   }
 };
@@ -54,7 +54,7 @@ export const deleteBankAccount = async (userId: string) => {
     await db.bankAccount.delete({ where: { userId } });
     revalidatePath("/bank-account");
     return { success: "Bank account deleted successfully!" };
-  } catch (error) {
+  } catch {
     return { error: "Failed to delete bank account!" };
   }
 };

@@ -80,7 +80,7 @@ const TradeHistory = () => {
       } else {
         toast.error("Failed to fetch trade history");
       }
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred while fetching trade history");
     } finally {
       setIsLoading(false);

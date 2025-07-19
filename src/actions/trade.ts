@@ -18,7 +18,7 @@ export const getWallet = async (userId: string) => {
     return {
       balance: wallet.balance,
     };
-  } catch (error) {
+  } catch {
     return { error: "Failed to fetch wallet data." };
   }
 };
@@ -80,7 +80,7 @@ export const placeTrade = async (
     }
 
     // Start transaction
-    const result = await db.$transaction(async (tx) => {
+    await db.$transaction(async (tx) => {
       // Deduct amount from wallet
       await tx.wallet.update({
         where: { userId },
@@ -114,7 +114,7 @@ export const placeTrade = async (
     });
 
     return { success: "Bet placed successfully!" };
-  } catch (error) {
+  } catch  {
     return { error: "Failed to place bet. Please try again." };
   }
 };
@@ -288,7 +288,7 @@ export const processRoundResults = async () => {
       result,
       trades: results,
     };
-  } catch (error) {
+  } catch {
     return { error: "Failed to process round results." };
   }
 };

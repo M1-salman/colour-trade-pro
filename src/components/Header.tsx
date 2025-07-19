@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { User } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 
 const Header = () => {
-  const { user, isAuthenticated} = useCurrentUser();
+  const { user, isAuthenticated } = useCurrentUser();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -50,11 +49,7 @@ const Header = () => {
       )}
 
       {/* Sidebar */}
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        onClose={closeSidebar} 
-        user={user} 
-      />
+      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} user={user} />
     </>
   );
 };

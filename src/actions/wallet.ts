@@ -25,10 +25,10 @@ export const createDeposit = async (userId: string, amount: number) => {
     if (wallet.isBlocked) {
       return { error: "Wallet is blocked. Cannot deposit." };
     }
-    
+
     // Create transaction (pending)
     // Use a Prisma transaction to ensure atomicity
-    const result = await db.$transaction(async (prisma) => {
+    await db.$transaction(async (prisma) => {
       // 1. Create the transaction (pending)
       const transaction = await prisma.transaction.create({
         data: {
@@ -42,7 +42,7 @@ export const createDeposit = async (userId: string, amount: number) => {
       });
 
       // 2. Update wallet balance
-      const updatedWallet = await prisma.wallet.update({
+      await prisma.wallet.update({
         where: { id: wallet.id },
         data: { balance: { increment: amount } },
       });

@@ -165,7 +165,7 @@ const Admin = () => {
                 Admin Access Required
               </h3>
               <p className="text-muted-foreground">
-                You don't have permission to access this page
+                You don&lsquo;t have permission to access this page
               </p>
               <Button className="mt-4" onClick={() => router.push("/trade")}>
                 Go to Trading

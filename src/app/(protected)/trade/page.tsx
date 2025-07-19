@@ -140,7 +140,7 @@ const Trade = () => {
         }
       }
       setUserBet(null);
-    } catch (error) {
+    } catch  {
       toast.error("Failed to process round results");
     }
   };

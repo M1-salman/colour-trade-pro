@@ -95,7 +95,7 @@ const BankAccount = () => {
         } else {
           toast.error("Failed to add account");
         }
-      } catch (error) {
+      } catch {
         toast.error("An unexpected error occurred");
       }
     });
@@ -127,7 +127,7 @@ const BankAccount = () => {
         } else {
           toast.error("Failed to delete account");
         }
-      } catch (error) {
+      } catch {
         toast.error("An unexpected error occurred");
       }
     });

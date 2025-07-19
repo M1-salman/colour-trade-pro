@@ -28,7 +28,7 @@ export async function getAllUsersWithWallets() {
     });
 
     return users;
-  } catch (error) {
+  } catch {
     throw new Error("Failed to fetch users");
   }
 }

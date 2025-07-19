@@ -51,7 +51,7 @@ const HeroSection = () => {
 
         {/* Main heading */}
         <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-violet-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent animate-fade-in">
-          India's Most Engaging Platform
+          India&apos;s Most Engaging Platform
           <br />
           <span className="relative">
             Assets
@@ -61,7 +61,7 @@ const HeroSection = () => {
 
         {/* Description */}
         <p className="text-md text-slate-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-          Welcome to Colour Trade Pro, one of India's fastest-growing platforms
+          Welcome to Colour Trade Pro, one of India&apos;s fastest-growing platforms
           for colour trading with real cash prizes. Where you can quickly earn
           with colour trading, Register to get ₹100 bonus.
         </p>

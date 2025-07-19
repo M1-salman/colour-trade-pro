@@ -20,7 +20,6 @@ interface CardWrapperProps {
 
 export const CardWrapper = ({
   children,
-  showSocial,
   backButtonLabel,
   backButtonHref,
   headerTitle,
