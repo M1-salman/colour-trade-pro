@@ -89,14 +89,6 @@ const LoginForm = () => {
                         className="bg-zinc-900 text-slate-100"
                       />
                     </FormControl>
-                    <Button
-                      size="sm"
-                      variant="link"
-                      className="px-0 "
-                      type="button"
-                    >
-                      <Link href="/auth/reset">Forgot Password?</Link>
-                    </Button>
                     <FormMessage className="text-red-500" />
                   </FormItem>
                 )}

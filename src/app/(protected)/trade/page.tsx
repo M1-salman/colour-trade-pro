@@ -173,12 +173,6 @@ const Trade = () => {
   };
 
   useEffect(() => {
-    if (gameState.timeLeft === 0 && gameState.phase === "waiting") {
-      handleRoundEnd();
-    }
-  }, [gameState.timeLeft, gameState.phase]);
-
-  useEffect(() => {
     if (lastResult) {
       setShowResult(true);
     }
