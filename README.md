@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎨 Colour Trade Pro
 
-## Getting Started
+🚨 **Disclaimer:** Colour trading is illegal in India — this project was built purely for **learning purposes**.  
 
-First, run the development server:
+A full-stack simulation of a colour trading game I built to explore **real-time trading logic, wallet systems, and how house-edge scams actually work**.  
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ⏱️ Core Features
+1. A **60-second global timer** synced across all users.  
+2. Users can **trade once per round**, with all trades processed when the timer ends.  
+3. Choose a **colour (Red, Green, Violet)** and a **number (0-9)**, place a trade, and later view your trade history on the **trade-history page**.  
+4. Fully functional **wallet system** with deposit, withdrawal (to bank), and one **linked bank account**.  
+5. **Profile management** with image upload via **Cloudinary**.  
+6. **Influenced outcomes** using a **house-edge algorithm** (scam logic simulation).  
+7. A full **Admin Dashboard** where the admin can view all user data and block wallets.  
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 👨‍💻 Built With
+- **Next.js 14**  
+- **TypeScript**  
+- **Tailwind CSS**  
+- **Shadcn**  
+- **Zod**  
+- **React Hook Form**  
+- **Lucide**  
+- **NextAuth v5**
+- **Supabase**
+- **PostgreSQL (Prisma)**  
+- **Cloudinary**  
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🧠 Tools Used
+- **VS Code**  
+- **Cursor AI**  
+- **Claude**  
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔗 Links
+- 🌐 Live App: [Colour Trade Pro](https://colour-trade-pro.vercel.app/trade)  
+- 🔗 LinkedIn Post: [See the Post Here](https://www.linkedin.com/posts/salman-masood917_nextjs-fullstack-softwareengineer-activity-7355270130034987009-MnQZ?utm_source=share&utm_medium=member_desktop&rcm=ACoAADd0O6sBeSDVUCn3dtSH_bp5ZA16F8o1lUE)  
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Thank you!
