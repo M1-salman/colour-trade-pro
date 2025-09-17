@@ -8,8 +8,18 @@ import { signIn } from "@/auth";
 import { LoginSchema } from "@/schemas/auth";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 import { getUserByEmail } from "@/data/user";
+import { db } from "@/lib/db";
 
 export const login = async (values: z.infer<typeof LoginSchema>) => {
+  // Check if database is connected
+  try {
+      await db.$queryRaw`SELECT 1`;
+    } catch (err) {
+      return {
+        error: "Database is paused, contact: salmanmasood917@gmail.com",
+      };
+    }
+
   // Validate fields
   const validatedFields = LoginSchema.safeParse(values);
 

@@ -7,6 +7,13 @@ import { db } from "@/lib/db";
 import { getUserByEmail } from "@/data/user";
 
 export const register = async (values: z.infer<typeof RegisterSchema>) => {
+  // Check if database is connected
+  try {
+    await db.$queryRaw`SELECT 1`; 
+  } catch (err) {
+    return { error: "Database is paused, contact: salmanmasood917@gmail.com" };
+  }
+
   // Validate fields
   const validatedFields = RegisterSchema.safeParse(values);
 
@@ -17,6 +24,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
 
   const { name, email, password } = validatedFields.data;
   const hashedPassword = await bcrypt.hash(password, 10);
+
 
   const existingUser = await getUserByEmail(email);
 
